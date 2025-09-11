@@ -1,0 +1,5 @@
+{
+  "name": "AI Invoice Generator",
+  "description": "An intelligent application to automatically generate, export, and manage professional invoices. Users can input invoice details, preview the document in real-time, export it as a high-quality A4 PDF, and upload it directly to Google Drive.",
+  "requestFramePermissions": []
+}
