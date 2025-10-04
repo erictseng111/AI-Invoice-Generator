@@ -1,10 +1,9 @@
 import React from 'react';
-import { InvoiceData, LineItem, Company, Client } from '../types';
+import { InvoiceData, LineItem, Client } from '../types';
 
 interface InvoiceFormProps {
   invoice: InvoiceData;
-  onDataChange: <K extends keyof InvoiceData>(key: K, value: InvoiceData[K]) => void;
-  onCompanyChange: <K extends keyof Company>(key: K, value: Company[K]) => void;
+  onDataChange: <K extends keyof Omit<InvoiceData, 'items' | 'client' | 'company'>>(key: K, value: InvoiceData[K]) => void;
   onClientChange: <K extends keyof Client>(key: K, value: Client[K]) => void;
   onItemChange: (index: number, updatedItem: LineItem) => void;
   onAddItem: () => void;
@@ -14,43 +13,33 @@ interface InvoiceFormProps {
 const InputField: React.FC<{ label: string; value: string | number; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; type?: string }> = ({ label, value, onChange, type = 'text' }) => (
     <div>
         <label className="block text-sm font-medium text-gray-600 mb-1">{label}</label>
-        <input type={type} value={value} onChange={onChange} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-500 transition"/>
+        <input type={type} value={value} onChange={onChange} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-500 transition bg-white text-black"/>
     </div>
 );
 
 const TextAreaField: React.FC<{ label: string; value: string; onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void; rows?: number }> = ({ label, value, onChange, rows = 3 }) => (
     <div>
         <label className="block text-sm font-medium text-gray-600 mb-1">{label}</label>
-        <textarea value={value} onChange={onChange} rows={rows} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-500 transition"/>
+        <textarea value={value} onChange={onChange} rows={rows} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-500 transition bg-white text-black"/>
     </div>
 );
 
-const InvoiceForm: React.FC<InvoiceFormProps> = ({ invoice, onDataChange, onCompanyChange, onClientChange, onItemChange, onAddItem, onRemoveItem }) => {
+const InvoiceForm: React.FC<InvoiceFormProps> = ({ invoice, onDataChange, onClientChange, onItemChange, onAddItem, onRemoveItem }) => {
 
   return (
     <div className="space-y-8">
-      {/* Company and Client Details */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-4 p-4 border border-gray-200 rounded-lg">
-          <h3 className="font-bold text-lg text-slate-700">Your Company</h3>
-          <InputField label="Name" value={invoice.company.name} onChange={e => onCompanyChange('name', e.target.value)} />
-          <InputField label="Address" value={invoice.company.address} onChange={e => onCompanyChange('address', e.target.value)} />
-          <InputField label="Email" value={invoice.company.email} onChange={e => onCompanyChange('email', e.target.value)} type="email"/>
-          <InputField label="Phone" value={invoice.company.phone} onChange={e => onCompanyChange('phone', e.target.value)} />
-        </div>
-        <div className="space-y-4 p-4 border border-gray-200 rounded-lg">
-          <h3 className="font-bold text-lg text-slate-700">Bill To</h3>
-          <InputField label="Client Name" value={invoice.client.name} onChange={e => onClientChange('name', e.target.value)} />
-          <InputField label="Client Address" value={invoice.client.address} onChange={e => onClientChange('address', e.target.value)} />
-          <InputField label="Client Email" value={invoice.client.email} onChange={e => onClientChange('email', e.target.value)} type="email"/>
-        </div>
+      {/* Client Details */}
+      <div className="space-y-4 p-4 border border-gray-200 rounded-lg">
+        <h3 className="font-bold text-lg text-slate-700">Company Details</h3>
+        <InputField label="Company Name" value={invoice.client.name} onChange={e => onClientChange('name', e.target.value)} />
+        <TextAreaField label="Company Address" value={invoice.client.address} onChange={e => onClientChange('address', e.target.value)} rows={3}/>
       </div>
 
       {/* Invoice Details */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-4 border border-gray-200 rounded-lg">
          <h3 className="font-bold text-lg text-slate-700 md:col-span-3 -mb-2">Invoice Details</h3>
-         <InputField label="Invoice #" value={invoice.invoiceNumber} onChange={e => onDataChange('invoiceNumber', e.target.value)} />
-         <InputField label="Issue Date" value={invoice.date} onChange={e => onDataChange('date', e.target.value)} type="date" />
+         <InputField label="Invoice No" value={invoice.invoiceNumber} onChange={e => onDataChange('invoiceNumber', e.target.value)} />
+         <InputField label="Invoice Date" value={invoice.date} onChange={e => onDataChange('date', e.target.value)} type="date" />
          <InputField label="Due Date" value={invoice.dueDate} onChange={e => onDataChange('dueDate', e.target.value)} type="date" />
       </div>
 
@@ -60,42 +49,31 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ invoice, onDataChange, onComp
         <div className="space-y-4">
           {invoice.items.map((item, index) => (
             <div key={item.id} className="grid grid-cols-12 gap-2 items-center p-3 bg-gray-50 rounded-lg">
-              <div className="col-span-12 md:col-span-5">
-                <label className="text-sm font-medium text-gray-500 md:hidden">Description</label>
+              <div className="col-span-12 sm:col-span-8">
+                <label className="text-sm font-medium text-gray-500 sm:hidden">Description</label>
                 <input
                   type="text"
                   placeholder="Item description"
                   value={item.description}
                   onChange={e => onItemChange(index, { ...item, description: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-slate-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-slate-500 bg-white text-black"
                 />
               </div>
-              <div className="col-span-6 md:col-span-2">
-                <label className="text-sm font-medium text-gray-500 md:hidden">Qty</label>
-                <input
-                  type="number"
-                  placeholder="1"
-                  value={item.quantity}
-                  onChange={e => onItemChange(index, { ...item, quantity: parseFloat(e.target.value) || 0 })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-slate-500"
-                />
+              <div className="col-span-10 sm:col-span-3">
+                 <label className="text-sm font-medium text-gray-500 sm:hidden">Amount</label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">{invoice.currency}</span>
+                  <input
+                    type="number"
+                    placeholder="0.00"
+                    value={item.price}
+                    onChange={e => onItemChange(index, { ...item, price: parseFloat(e.target.value) || 0, quantity: 1 })}
+                    className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-slate-500 bg-white text-black"
+                  />
+                </div>
               </div>
-              <div className="col-span-6 md:col-span-2">
-                <label className="text-sm font-medium text-gray-500 md:hidden">Price</label>
-                <input
-                  type="number"
-                  placeholder="0.00"
-                  value={item.price}
-                  onChange={e => onItemChange(index, { ...item, price: parseFloat(e.target.value) || 0 })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-slate-500"
-                />
-              </div>
-              <div className="col-span-10 md:col-span-2 flex items-center justify-end">
-                <span className="text-gray-700 font-medium">
-                  {invoice.currency}{(item.quantity * item.price).toFixed(2)}
-                </span>
-              </div>
-              <div className="col-span-2 md:col-span-1 flex justify-end">
+
+              <div className="col-span-2 sm:col-span-1 flex justify-end">
                 <button
                   onClick={() => onRemoveItem(index)}
                   className="p-2 text-red-500 hover:bg-red-100 rounded-full transition"
@@ -114,15 +92,10 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ invoice, onDataChange, onComp
         </button>
       </div>
 
-      {/* Notes, Tax, and Currency */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-6 p-4 border border-gray-200 rounded-lg">
-          <div className="md:col-span-3">
-            <TextAreaField label="Notes / Terms" value={invoice.notes} onChange={e => onDataChange('notes', e.target.value)} />
-          </div>
-          <div className="md:col-span-2 space-y-4">
-            <InputField label="Tax Rate (%)" value={invoice.taxRate} onChange={e => onDataChange('taxRate', parseFloat(e.target.value) || 0)} type="number" />
-            <InputField label="Currency Symbol" value={invoice.currency} onChange={e => onDataChange('currency', e.target.value)} />
-          </div>
+      {/* Tax and Currency */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 border border-gray-200 rounded-lg">
+        <InputField label="Withholding Tax Rate (%)" value={invoice.taxRate} onChange={e => onDataChange('taxRate', parseFloat(e.target.value) || 0)} type="number" />
+        <InputField label="Currency Symbol" value={invoice.currency} onChange={e => onDataChange('currency', e.target.value)} />
        </div>
 
     </div>

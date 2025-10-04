@@ -25,7 +25,6 @@ export interface InvoiceData {
   date: string;
   dueDate: string;
   items: LineItem[];
-  notes: string;
   taxRate: number;
   currency: string;
 }

@@ -79,53 +79,49 @@ const App: React.FC = () => {
     setLoadingState(prev => ({ ...prev, pdf: true }));
 
     try {
-        const { jsPDF } = window.jspdf;
-        const content = previewRef.current;
-        const canvas = await window.html2canvas(content, {
-            scale: 2, // Use a higher scale for better resolution
-            backgroundColor: '#ffffff',
-            useCORS: true,
-        });
+      const { jsPDF } = window.jspdf;
+      const canvas = await window.html2canvas(previewRef.current, {
+          scale: 2, // Higher scale for better quality
+          backgroundColor: '#ffffff',
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'p',
+        unit: 'mm',
+        format: 'a4',
+      });
 
-        const imgData = canvas.toDataURL('image/png');
-        
-        const pdf = new jsPDF({
-            orientation: 'portrait',
-            unit: 'mm',
-            format: 'a4'
-        });
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      
+      // A4 aspect ratio
+      const canvasWidth = canvas.width;
+      const canvasHeight = canvas.height;
+      const canvasRatio = canvasWidth / canvasHeight;
+      const pdfRatio = pdfWidth / pdfHeight;
 
-        const imgProps= pdf.getImageProperties(imgData);
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = pdf.internal.pageSize.getHeight();
-        
-        const imgWidth = canvas.width;
-        const imgHeight = canvas.height;
-        
-        const ratio = imgWidth / pdfWidth;
-        const scaledHeight = imgHeight / ratio;
-        
-        let heightLeft = scaledHeight;
-        let position = 0;
-        
-        // Add the first page
-        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, scaledHeight);
-        heightLeft -= pdfHeight;
-        
-        // Add subsequent pages if the content is longer than one A4 page
-        while (heightLeft > 0) {
-            position -= pdfHeight;
-            pdf.addPage();
-            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, scaledHeight);
-            heightLeft -= pdfHeight;
-        }
+      let finalImgWidth, finalImgHeight;
 
-        pdf.save(`Invoice-${invoice.invoiceNumber}.pdf`);
+      // Fit the image to the A4 page, maintaining aspect ratio
+      if (canvasRatio > pdfRatio) {
+        finalImgWidth = pdfWidth;
+        finalImgHeight = pdfWidth / canvasRatio;
+      } else {
+        finalImgHeight = pdfHeight;
+        finalImgWidth = pdfHeight * canvasRatio;
+      }
+      
+      const x = (pdfWidth - finalImgWidth) / 2;
+      const y = 0;
+
+      pdf.addImage(imgData, 'PNG', x, y, finalImgWidth, finalImgHeight);
+      pdf.save(`Invoice-${invoice.invoiceNumber}.pdf`);
     } catch (error) {
-        console.error("Failed to generate PDF:", error);
-        alert("An error occurred while generating the PDF. Please try again.");
+      console.error("Failed to generate PDF:", error);
+      alert("An error occurred while generating the PDF. Please try again.");
     } finally {
-        setLoadingState(prev => ({ ...prev, pdf: false }));
+      setLoadingState(prev => ({ ...prev, pdf: false }));
     }
   };
   
@@ -177,7 +173,7 @@ const App: React.FC = () => {
                 </button>
               </div>
             </div>
-            <div className="rounded-xl shadow-lg overflow-hidden border border-gray-200">
+            <div className="rounded-xl shadow-lg overflow-hidden">
                 <div ref={previewRef} className="overflow-y-auto max-h-[80vh] bg-white">
                   <InvoicePreview invoice={invoice} />
                 </div>
